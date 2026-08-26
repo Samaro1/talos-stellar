@@ -1,0 +1,70 @@
+name: Web and SDK CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'packages/sdk/**'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - '.github/workflows/ci-web-sdk.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'packages/sdk/**'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - '.github/workflows/ci-web-sdk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-sdk:
+    name: Web and SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Web type check
+        working-directory: web
+        run: pnpm build
+
+      - name: Web lint
+        working-directory: web
+        run: pnpm lint
+
+      - name: Web unit tests
+        working-directory: web
+        run: pnpm test:unit
+
+      - name: SDK type check
+        working-directory: packages/sdk
+        run: pnpm build:esm
+        continue-on-error: true
+
+      - name: SDK tests
+        working-directory: packages/sdk
+        run: pnpm test
