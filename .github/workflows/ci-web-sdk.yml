@@ -63,7 +63,6 @@ jobs:
       - name: SDK type check
         working-directory: packages/sdk
         run: pnpm build:esm
-        continue-on-error: true
 
       - name: SDK tests
         working-directory: packages/sdk
